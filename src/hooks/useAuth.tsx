@@ -71,10 +71,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = async () => {
+    // If no session exists, just clear state and navigate
+    if (!session) {
+      setUser(null);
+      setSession(null);
+      setUserRole(null);
+      navigate("/auth/login");
+      return;
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast.error("Error signing out");
       console.error("Sign out error:", error);
+      // Even if there's an error, clear local state and redirect
+      setUser(null);
+      setSession(null);
+      setUserRole(null);
+      navigate("/auth/login");
     } else {
       setUser(null);
       setSession(null);
