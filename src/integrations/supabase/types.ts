@@ -124,6 +124,7 @@ export type Database = {
           approved_by: string | null
           created_at: string | null
           id: string
+          rejection_reason: string | null
           request_date: string
           signed_pdf_url: string | null
           status: Database["public"]["Enums"]["request_status"]
@@ -136,6 +137,7 @@ export type Database = {
           approved_by?: string | null
           created_at?: string | null
           id?: string
+          rejection_reason?: string | null
           request_date?: string
           signed_pdf_url?: string | null
           status?: Database["public"]["Enums"]["request_status"]
@@ -148,6 +150,7 @@ export type Database = {
           approved_by?: string | null
           created_at?: string | null
           id?: string
+          rejection_reason?: string | null
           request_date?: string
           signed_pdf_url?: string | null
           status?: Database["public"]["Enums"]["request_status"]

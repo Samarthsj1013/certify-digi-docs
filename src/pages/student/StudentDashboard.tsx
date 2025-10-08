@@ -5,9 +5,10 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StatusBadge } from "@/components/StatusBadge";
 import { toast } from "sonner";
-import { FileText, Download, Loader2, GraduationCap, Award } from "lucide-react";
+import { FileText, Download, Loader2, GraduationCap, Award, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface StudentData {
@@ -23,6 +24,7 @@ interface RequestData {
   request_date: string;
   approval_date: string | null;
   signed_pdf_url: string | null;
+  rejection_reason: string | null;
 }
 
 export default function StudentDashboard() {
@@ -80,7 +82,7 @@ export default function StudentDashboard() {
 
     const { data, error } = await supabase
       .from("certification_requests")
-      .select("id, status, request_date, approval_date, signed_pdf_url")
+      .select("id, status, request_date, approval_date, signed_pdf_url, rejection_reason")
       .eq("student_usn", studentData.usn)
       .order("request_date", { ascending: false });
 
@@ -239,33 +241,46 @@ export default function StudentDashboard() {
                 </TableHeader>
                 <TableBody>
                   {requests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell className="font-mono text-sm">
-                        {request.id.slice(0, 8)}...
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(request.request_date), "MMM dd, yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={request.status} />
-                      </TableCell>
-                      <TableCell>
-                        {request.status === "Approved" && request.signed_pdf_url ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDownload(request.signed_pdf_url!)}
-                          >
-                            <Download className="mr-2 h-4 w-4" />
-                            Download PDF
-                          </Button>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">
-                            {request.status === "Pending" ? "Awaiting approval" : "Not available"}
-                          </span>
-                        )}
-                      </TableCell>
-                    </TableRow>
+                    <>
+                      <TableRow key={request.id}>
+                        <TableCell className="font-mono text-sm">
+                          {request.id.slice(0, 8)}...
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(request.request_date), "MMM dd, yyyy")}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={request.status} />
+                        </TableCell>
+                        <TableCell>
+                          {request.status === "Approved" && request.signed_pdf_url ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownload(request.signed_pdf_url!)}
+                            >
+                              <Download className="mr-2 h-4 w-4" />
+                              Download PDF
+                            </Button>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              {request.status === "Pending" ? "Awaiting approval" : "Not available"}
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                      {request.status === "Rejected" && request.rejection_reason && (
+                        <TableRow key={`${request.id}-reason`}>
+                          <TableCell colSpan={4} className="bg-destructive/5">
+                            <Alert variant="destructive" className="border-destructive/30">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertTitle>Rejection Reason</AlertTitle>
+                              <AlertDescription>{request.rejection_reason}</AlertDescription>
+                            </Alert>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
                   ))}
                 </TableBody>
               </Table>
