@@ -125,8 +125,32 @@ export default function StudentDashboard() {
     }
 
     try {
-      // In a real implementation, this would download from storage
-      toast.info("Download functionality will be implemented with storage");
+      // Extract file path from URL
+      const urlParts = pdfUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const folderName = urlParts[urlParts.length - 2];
+      const filePath = `${folderName}/${fileName}`;
+
+      toast.loading("Downloading certificate...", { id: "download" });
+
+      // Download from Supabase storage
+      const { data, error } = await supabase.storage
+        .from('certificates')
+        .download(filePath);
+
+      if (error) throw error;
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Academic_Certificate_${studentData?.usn || 'transcript'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Certificate downloaded successfully!", { id: "download" });
     } catch (error) {
       console.error("Download error:", error);
       toast.error("Error downloading certificate");

@@ -101,8 +101,17 @@ export default function COEDashboard() {
     setProcessing(requestId);
 
     try {
-      // Generate verification hash
-      const verificationHash = crypto.randomUUID();
+      toast.loading("Generating certificate...", { id: requestId });
+
+      // Call edge function to generate PDF certificate
+      const { data: pdfData, error: pdfError } = await supabase.functions.invoke(
+        "generate-certificate",
+        {
+          body: { requestId },
+        }
+      );
+
+      if (pdfError) throw pdfError;
 
       // Update request status
       const { error: updateError } = await supabase
@@ -111,7 +120,6 @@ export default function COEDashboard() {
           status: "Approved",
           approval_date: new Date().toISOString(),
           approved_by: user?.id,
-          verification_hash: verificationHash,
         })
         .eq("id", requestId);
 
@@ -123,10 +131,13 @@ export default function COEDashboard() {
         action: "Approved certification request",
         entity_type: "certification_request",
         entity_id: requestId,
-        metadata: { student_usn: studentUsn },
+        metadata: { 
+          student_usn: studentUsn,
+          verification_hash: pdfData?.verificationHash 
+        },
       });
 
-      toast.success("Request approved successfully");
+      toast.success("Certificate generated and request approved!");
       setSelectedRequests(prev => {
         const newSet = new Set(prev);
         newSet.delete(requestId);
